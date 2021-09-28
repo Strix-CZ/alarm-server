@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.sql.Connection;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @ExtendWith(DbTestExtension.class)
@@ -73,15 +74,29 @@ class DeviceCheckInDtoTest
 	}
 
 	@Test
-	void getNewestTest()
+	void getNewestWithLargeLimit_returnsAll()
 	{
 		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 100));
 		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 90));
 
-		var batteryLevels = query.getNewestCheckIns(connection, deviceId, 1000).stream()
+		assertCheckInBatteryLevels(query.getNewestCheckIns(connection, deviceId, 1000), 100, 90);
+	}
+
+	@Test
+	void getNewestWithSmallLimit_returnsNewest()
+	{
+		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 100));
+		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 90));
+
+		assertCheckInBatteryLevels(query.getNewestCheckIns(connection, deviceId, 1), 90);
+	}
+
+	private void assertCheckInBatteryLevels(List<DeviceCheckInDto> checkIns, Integer... expectedBatteryLevels)
+	{
+		var batteryLevels = checkIns.stream()
 				.map(c -> c.battery)
 				.collect(Collectors.toList());
 
-		org.assertj.core.api.Assertions.assertThat(batteryLevels).containsExactly(100, 90);
+		org.assertj.core.api.Assertions.assertThat(batteryLevels).containsExactly(expectedBatteryLevels);
 	}
 }

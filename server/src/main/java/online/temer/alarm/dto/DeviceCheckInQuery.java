@@ -7,6 +7,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.List;
 
 public class DeviceCheckInQuery
@@ -34,15 +35,18 @@ public class DeviceCheckInQuery
 		{
 			ListHandler<DeviceCheckInDto> listHandler = new ListHandler<>(new Handler());
 
-			return new QueryRunner().query(connection,
+			var checkIns = new QueryRunner().query(connection,
 					"SELECT * " +
 							"FROM DeviceCheckIn " +
 							"WHERE kDevice = ? " +
-							"ORDER BY id " +
+							"ORDER BY id DESC " +
 							"LIMIT ?",
 					listHandler,
 					device,
 					limit);
+
+			checkIns.sort(Comparator.comparingLong(checkIn -> checkIn.id));
+			return checkIns;
 		}
 		catch (SQLException e)
 		{
