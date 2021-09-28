@@ -14,12 +14,9 @@ import online.temer.alarm.server.QueryParameterReader;
 import online.temer.alarm.server.authentication.Authentication;
 
 import java.sql.Connection;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 public class GetAlarmHandler extends Handler<UserDto>
@@ -76,19 +73,16 @@ public class GetAlarmHandler extends Handler<UserDto>
 
 		return "[" +
 				checkIns.stream()
-						.map(c -> checkInToJson(device.timeZone, c))
+						.map(this::checkInToJson)
 						.collect(Collectors.joining(","))
 				+ "]";
 	}
 
-	private String checkInToJson(TimeZone deviceTimeZone, DeviceCheckInDto checkIn)
+	private String checkInToJson(DeviceCheckInDto checkIn)
 	{
 		var timeInServerTimeZone = checkIn.time.atZone(ZoneId.systemDefault());
-		var userTime = timeInServerTimeZone.withZoneSameInstant(deviceTimeZone.toZoneId());
 
-		String time = userTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-
-		return "{\"time\":\"" + time + "\"," +
+		return "{\"time\":\"" + timeInServerTimeZone.toEpochSecond() + "\"," +
 				"\"battery\":" + checkIn.battery + "}";
 	}
 }

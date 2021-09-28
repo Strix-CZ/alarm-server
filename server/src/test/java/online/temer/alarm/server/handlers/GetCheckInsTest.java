@@ -22,7 +22,6 @@ import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.TimeZone;
 
 @ExtendWith(ServerTestExtension.class)
@@ -57,11 +56,12 @@ public class GetCheckInsTest
 	void singleCheckIn_returnsIt()
 	{
 		createUserWithDevice(TimeZone.getDefault());
+		LocalDateTime time = LocalDateTime.of(2020, 10, 31, 8, 20);
 
-		DeviceCheckInDto expectedCheckIn = new DeviceCheckInDto(device.id, LocalDateTime.of(2020, 10, 31, 8, 20), 95);
+		DeviceCheckInDto expectedCheckIn = new DeviceCheckInDto(device.id, time, 95);
 		deviceCheckInQuery.insertUpdate(connection, expectedCheckIn);
 
-		assertCheckIn("2020-10-31 08:20", 95);
+		assertCheckIn(time.atZone(ZoneId.systemDefault()), 95);
 	}
 
 	@Test
@@ -69,10 +69,11 @@ public class GetCheckInsTest
 	{
 		createUserWithDevice(TimeZone.getDefault());
 
+		var newestTime = LocalDateTime.of(2020, 10, 31, 8, 25);
 		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, LocalDateTime.of(2020, 10, 31, 8, 20), 95));
-		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, LocalDateTime.of(2020, 10, 31, 8, 25), 90));
+		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, newestTime, 90));
 
-		assertCheckIn("2020-10-31 08:25", 90);
+		assertCheckIn(newestTime.atZone(ZoneId.systemDefault()), 90);
 	}
 
 	@Test
@@ -84,19 +85,13 @@ public class GetCheckInsTest
 		LocalDateTime serverLocalTime = LocalDateTime.of(2020, 10, 31, 8, 20);
 		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, serverLocalTime, 95));
 
-		var epochSecond = ZonedDateTime.of(serverLocalTime, ZoneId.systemDefault()).toEpochSecond();
-
-		var timeString = new JSONObject(makeGetRequest().body())
+		var time = new JSONObject(makeGetRequest().body())
 				.getJSONArray("checkIns")
 				.getJSONObject(0)
-				.getString("time");
+				.getLong("time");
 
-		var actualEpochSecond = LocalDateTime.parse(timeString, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-				.atZone(timeZone.toZoneId())
-				.toEpochSecond();
-
-		Assertions.assertThat(actualEpochSecond)
-				.isEqualTo(epochSecond);
+		Assertions.assertThat(time)
+				.isEqualTo(ZonedDateTime.of(serverLocalTime, ZoneId.systemDefault()).toEpochSecond());
 	}
 
 	private void createUserWithDevice(TimeZone timeZone)
@@ -105,7 +100,7 @@ public class GetCheckInsTest
 		TestUserAuthentication.setAuthenticatedUser(new UserDto(10, "john@example.com", "hash", "salt"));
 	}
 
-	private void assertCheckIn(String epectedTime, int expectedBattery)
+	private void assertCheckIn(ZonedDateTime expectedTime, int expectedBattery)
 	{
 		var checkIns = new JSONObject(makeGetRequest().body())
 				.getJSONArray("checkIns");
@@ -115,9 +110,9 @@ public class GetCheckInsTest
 				.isEqualTo(1);
 
 		var checkIn = checkIns.getJSONObject(0);
-		Assertions.assertThat(checkIn.getString("time"))
+		Assertions.assertThat(checkIn.getLong("time"))
 				.as("time")
-				.isEqualTo(epectedTime);
+				.isEqualTo(expectedTime.toEpochSecond());
 
 		Assertions.assertThat(checkIn.getInt("battery"))
 				.as("battery")
