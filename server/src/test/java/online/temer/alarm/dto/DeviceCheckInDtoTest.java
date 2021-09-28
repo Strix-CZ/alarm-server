@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.sql.Connection;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 @ExtendWith(DbTestExtension.class)
 class DeviceCheckInDtoTest
@@ -69,5 +70,18 @@ class DeviceCheckInDtoTest
 
 		Assertions.assertEquals(100, query.getLatest(connection, deviceId).battery, "battery of first device is 100");
 		Assertions.assertEquals(50, query.getLatest(connection, deviceId2).battery, "battery of second device is 50");
+	}
+
+	@Test
+	void getAllTest()
+	{
+		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 100));
+		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 90));
+
+		var batteryLevels = query.getAll(connection, deviceId).stream()
+				.map(c -> c.battery)
+				.collect(Collectors.toList());
+
+		org.assertj.core.api.Assertions.assertThat(batteryLevels).containsExactly(100, 90);
 	}
 }

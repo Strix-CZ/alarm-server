@@ -22,6 +22,8 @@ import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TimeZone;
 
 @ExtendWith(ServerTestExtension.class)
@@ -65,15 +67,21 @@ public class GetCheckInsTest
 	}
 
 	@Test
-	void multipleCheckIns_newestOneIsReturned()
+	void multipleCheckIns_allAreReturned()
 	{
 		createUserWithDevice(TimeZone.getDefault());
+		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, LocalDateTime.now(), 95));
+		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, LocalDateTime.now(), 90));
 
-		var newestTime = LocalDateTime.of(2020, 10, 31, 8, 25);
-		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, LocalDateTime.of(2020, 10, 31, 8, 20), 95));
-		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, newestTime, 90));
+		var checkIns = new JSONObject(makeGetRequest().body())
+				.getJSONArray("checkIns");
+		List<Integer> batteryLevels = new ArrayList<>();
+		for (int i = 0; i < checkIns.length(); ++i)
+		{
+			batteryLevels.add(checkIns.getJSONObject(i).getInt("battery"));
+		}
 
-		assertCheckIn(newestTime.atZone(ZoneId.systemDefault()), 90);
+		Assertions.assertThat(batteryLevels).containsExactly(95, 90);
 	}
 
 	@Test

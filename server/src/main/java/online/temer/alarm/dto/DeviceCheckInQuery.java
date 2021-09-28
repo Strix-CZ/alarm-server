@@ -1,11 +1,13 @@
 package online.temer.alarm.dto;
 
+import online.temer.alarm.db.ListHandler;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class DeviceCheckInQuery
 {
@@ -14,10 +16,30 @@ public class DeviceCheckInQuery
 		try
 		{
 			return new QueryRunner().query(connection,
-					"SELECT id, kDevice device, time, battery " +
+					"SELECT * " +
 							"FROM DeviceCheckIn " +
 							"WHERE id = (SELECT MAX(id) FROM DeviceCheckIn WHERE kDevice = ?)",
 					new Handler(),
+					device);
+		}
+		catch (SQLException e)
+		{
+			throw new RuntimeException(e);
+		}
+	}
+
+	public List<DeviceCheckInDto> getAll(Connection connection, long device)
+	{
+		try
+		{
+			ListHandler<DeviceCheckInDto> listHandler = new ListHandler<>(new Handler());
+
+			return new QueryRunner().query(connection,
+					"SELECT * " +
+							"FROM DeviceCheckIn " +
+							"WHERE kDevice = ? " +
+							"ORDER BY id",
+					listHandler,
 					device);
 		}
 		catch (SQLException e)
