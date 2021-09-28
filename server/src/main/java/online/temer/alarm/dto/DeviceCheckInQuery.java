@@ -28,7 +28,7 @@ public class DeviceCheckInQuery
 		}
 	}
 
-	public List<DeviceCheckInDto> getAll(Connection connection, long device)
+	public List<DeviceCheckInDto> getNewestCheckIns(Connection connection, long device, int limit)
 	{
 		try
 		{
@@ -38,9 +38,11 @@ public class DeviceCheckInQuery
 					"SELECT * " +
 							"FROM DeviceCheckIn " +
 							"WHERE kDevice = ? " +
-							"ORDER BY id",
+							"ORDER BY id " +
+							"LIMIT ?",
 					listHandler,
-					device);
+					device,
+					limit);
 		}
 		catch (SQLException e)
 		{

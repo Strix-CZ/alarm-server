@@ -15,7 +15,6 @@ import online.temer.alarm.server.authentication.Authentication;
 
 import java.sql.Connection;
 import java.time.ZoneId;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,7 +65,7 @@ public class GetAlarmHandler extends Handler<UserDto>
 
 	private String getCheckIns(Connection connection, DeviceDto device)
 	{
-		List<DeviceCheckInDto> checkIns = deviceCheckInQuery.getAll(connection, device.id);
+		List<DeviceCheckInDto> checkIns = deviceCheckInQuery.getNewestCheckIns(connection, device.id, 1000);
 
 		return "[" +
 				checkIns.stream()

@@ -73,12 +73,12 @@ class DeviceCheckInDtoTest
 	}
 
 	@Test
-	void getAllTest()
+	void getNewestTest()
 	{
 		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 100));
 		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 90));
 
-		var batteryLevels = query.getAll(connection, deviceId).stream()
+		var batteryLevels = query.getNewestCheckIns(connection, deviceId, 1000).stream()
 				.map(c -> c.battery)
 				.collect(Collectors.toList());
 
