@@ -65,7 +65,7 @@ public class GetAlarmHandler extends Handler<UserDto>
 
 	private String getCheckIns(Connection connection, DeviceDto device)
 	{
-		List<DeviceCheckInDto> checkIns = deviceCheckInQuery.getNewestCheckIns(connection, device.id, 300);
+		List<DeviceCheckInDto> checkIns = deviceCheckInQuery.getNewestCheckIns(connection, device.id, 1000);
 
 		return "[" +
 				checkIns.stream()
