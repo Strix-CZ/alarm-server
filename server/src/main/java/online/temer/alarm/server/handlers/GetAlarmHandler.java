@@ -82,7 +82,7 @@ public class GetAlarmHandler extends Handler<UserDto>
 	{
 		var timeInServerTimeZone = checkIn.time.atZone(ZoneId.systemDefault());
 
-		return "{\"time\":\"" + timeInServerTimeZone.toEpochSecond() + "\"," +
+		return "{\"time\":" + timeInServerTimeZone.toEpochSecond() + "," +
 				"\"battery\":" + checkIn.battery + "}";
 	}
 }
