@@ -10,6 +10,7 @@ import Json.Decode exposing (Decoder, field, int, map2, oneOf, bool, string)
 import Json.Encode
 import ParseInt
 import Array
+import Time
 
 -- CONFIG
 
@@ -51,7 +52,7 @@ type State
   | Saving
 
 type alias CheckIn =
-  { time : String
+  { time : Time.Posix
   , battery : Int
   }
 
@@ -301,18 +302,29 @@ viewCheckIn maybeCheckIn =
     [ style "font-size" "medium"
     , style "margin-top" "1em"
     ]
-    [
+    (
       case maybeCheckIn of
         Nothing ->
-          text "The device has never been on-line."
+          [ text "The device has never been on-line." ]
 
         Just checkIn ->
-          text ("Device was last on-line at "
-            ++ checkIn.time
-            ++ " with battery level "
-            ++ (String.fromInt checkIn.battery)
-            ++ ".")
-    ]
+          [
+            text ("Device was last on-line at "
+              ++ (viewTime checkIn.time)
+              ++ " with battery level "
+              ++ (String.fromInt checkIn.battery)
+              ++ ".")
+          ]
+    )
+
+viewTime : Time.Posix -> String
+viewTime time =
+  String.fromInt (Time.toHour Time.utc time)
+    ++ ":" ++
+  String.padLeft 2 '0' (String.fromInt (Time.toMinute Time.utc time))
+  ++ ":" ++
+  String.padLeft 2 '0' (String.fromInt (Time.toSecond Time.utc time))
+  ++ " UTC"
 
 -- JSON
 
@@ -353,11 +365,19 @@ checkInDecoder =
       Json.Decode.maybe (
         Json.Decode.index 0 (
             Json.Decode.map2 CheckIn
-              (field "time" string)
+              (field "time" posixTimeDecoder)
               (field "battery" int)
         )
       )
     )
+
+posixTimeDecoder : Decoder Time.Posix
+posixTimeDecoder =
+  Json.Decode.int
+    |> Json.Decode.andThen
+      (\seconds ->
+        Json.Decode.succeed <| Time.millisToPosix (seconds * 1000)
+      )
 
 -- HELPERS
 

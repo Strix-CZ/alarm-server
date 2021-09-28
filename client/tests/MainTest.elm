@@ -5,6 +5,7 @@ import Fuzz exposing (Fuzzer, int, list, string)
 import Test exposing (..)
 import Json.Decode
 import Main exposing (..)
+import Time
 
 
 decodesActiveAlarm : Test
@@ -51,7 +52,7 @@ decodesCheckIn =
         input =
           """
             {"checkIns": [
-              { "time": "2020-10-31 08:20"
+              { "time": 50
               , "battery": 95
               }
             ]}
@@ -60,7 +61,7 @@ decodesCheckIn =
           Json.Decode.decodeString checkInDecoder input
       in
         Expect.equal decodedOutput
-          ( Ok (Just (CheckIn "2020-10-31 08:20" 95) ) )
+          ( Ok (Just (CheckIn (Time.millisToPosix 50000) 95) ) )
 
 decodesUnsetCheckIn : Test
 decodesUnsetCheckIn =
