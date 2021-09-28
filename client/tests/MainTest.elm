@@ -61,7 +61,7 @@ decodesCheckIn =
           Json.Decode.decodeString checkInDecoder input
       in
         Expect.equal decodedOutput
-          ( Ok (Just (CheckIn (Time.millisToPosix 50000) 95) ) )
+          ( Ok [CheckIn (Time.millisToPosix 50000) 95] ) 
 
 decodesUnsetCheckIn : Test
 decodesUnsetCheckIn =
@@ -73,4 +73,18 @@ decodesUnsetCheckIn =
           Json.Decode.decodeString checkInDecoder input
       in
         Expect.equal decodedOutput
-          ( Ok Nothing )
+          ( Ok [] )
+
+lastInEmptyListIsNothing =
+  describe "Last in a list"
+  [
+    (test "last [] = Nothing" <|
+      \() -> Expect.equal (last []) (Nothing))
+
+  , (test "last [1] = Just 1" <|
+      \() -> Expect.equal (last [1]) (Just 1))
+
+  , (test "last [1, 2] = Just 2" <|
+      \() -> Expect.equal (last [1, 2]) (Just 2))
+
+  ]

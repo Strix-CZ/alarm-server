@@ -59,7 +59,7 @@ type alias CheckIn =
 type alias Model =
   { state : State
   , alarm : Alarm
-  , checkIn : Maybe CheckIn
+  , checkIns : List CheckIn
   , username : String
   , password : String
   }
@@ -69,7 +69,7 @@ init : () -> (Model, Cmd Msg)
 init _ =
   ( { state = Loading
     , alarm = createDefaultAlarm
-    , checkIn = Nothing
+    , checkIns = []
     , username = ""
     , password = ""
     }
@@ -81,7 +81,7 @@ init _ =
 -- UPDATE
 
 type Msg
-  = ReceivedAlarmAndCheckIn (Result Http.Error (Alarm, Maybe CheckIn))
+  = ReceivedAlarmAndCheckIn (Result Http.Error (Alarm, List CheckIn))
   | AlarmUploaded (Result Http.Error ())
   | TimeUpdated String
   | ActiveUpdated Bool
@@ -95,8 +95,8 @@ update msg model =
   case msg of
     ReceivedAlarmAndCheckIn result ->
       case result of
-        Ok (alarm, checkIn) ->
-          ( { model | alarm = alarm, checkIn = checkIn, state = Loaded }
+        Ok (alarm, checkIns) ->
+          ( { model | alarm = alarm, checkIns = checkIns, state = Loaded }
           , Cmd.none
           )
 
@@ -211,7 +211,7 @@ viewLoadedModel model =
   , br [] []
   , makeTimeInput model.alarm
   , br [] []
-  , viewCheckIn model.checkIn
+  , viewCheckIns model.checkIns
   ]
   (viewSavingAnimation model)
 
@@ -296,14 +296,14 @@ explainHttpError error =
       "The server responded in an unexpected way. " ++ message
 
 
-viewCheckIn : Maybe CheckIn -> Html Msg
-viewCheckIn maybeCheckIn =
+viewCheckIns : List CheckIn -> Html Msg
+viewCheckIns checkIns =
   div 
     [ style "font-size" "medium"
     , style "margin-top" "1em"
     ]
     (
-      case maybeCheckIn of
+      case last checkIns of
         Nothing ->
           [ text "The device has never been on-line." ]
 
@@ -317,6 +317,10 @@ viewCheckIn maybeCheckIn =
           ]
     )
 
+last : List a -> Maybe a
+last list = 
+  List.foldl (\a _ -> Just a) Nothing list
+
 viewTime : Time.Posix -> String
 viewTime time =
   String.fromInt (Time.toHour Time.utc time)
@@ -328,7 +332,7 @@ viewTime time =
 
 -- JSON
 
-alarmAndCheckInDecoder : Decoder (Alarm, Maybe CheckIn)
+alarmAndCheckInDecoder : Decoder (Alarm, List CheckIn)
 alarmAndCheckInDecoder =
   map2 Tuple.pair
     alarmDecoder
@@ -359,17 +363,15 @@ encodeAlarm alarm =
         , ( "minute", Json.Encode.int alarm.time.minute)
         ]
 
-checkInDecoder : Decoder (Maybe CheckIn)
+checkInDecoder : Decoder (List CheckIn)
 checkInDecoder =
   field "checkIns" (
-      Json.Decode.maybe (
-        Json.Decode.index 0 (
-            Json.Decode.map2 CheckIn
-              (field "time" posixTimeDecoder)
-              (field "battery" int)
-        )
-      )
+    Json.Decode.list (
+        Json.Decode.map2 CheckIn
+          (field "time" posixTimeDecoder)
+          (field "battery" int)
     )
+  )
 
 posixTimeDecoder : Decoder Time.Posix
 posixTimeDecoder =
