@@ -10,6 +10,26 @@ import Json.Decode exposing (Decoder, field, int, map2, oneOf, bool, string)
 import Json.Encode
 import ParseInt
 import Array
+import LineChart
+import LineChart.Colors as Colors
+import LineChart.Junk as Junk
+import LineChart.Area as Area
+import LineChart.Axis as Axis
+import LineChart.Axis.Line as AxisLine
+import LineChart.Axis.Range as Range
+import LineChart.Axis.Ticks as Ticks
+import LineChart.Axis.Title as Title
+import LineChart.Junk as Junk
+import LineChart.Dots as Dots
+import LineChart.Grid as Grid
+import LineChart.Dots as Dots
+import LineChart.Line as Line
+import LineChart.Colors as Colors
+import LineChart.Events as Events
+import LineChart.Legends as Legends
+import LineChart.Container as Container
+import LineChart.Interpolation as Interpolation
+import LineChart.Axis.Intersection as Intersection
 import Time
 
 -- CONFIG
@@ -314,8 +334,51 @@ viewCheckIns checkIns =
               ++ " with battery level "
               ++ (String.fromInt checkIn.battery)
               ++ ".")
+          , chart Time.utc (List.map checkInToFloat checkIns)
           ]
     )
+
+checkInToFloat : CheckIn -> CheckInFloat
+checkInToFloat c = 
+  CheckInFloat
+    (c.time |> Time.posixToMillis |> toFloat)
+    (toFloat c.battery)
+
+
+type alias CheckInFloat = 
+  { timeFloat : Float
+  , batteryFloat : Float
+  }
+
+chart : Time.Zone -> List CheckInFloat -> Html Msg
+chart zone checkIns =
+    LineChart.viewCustom
+        { x = xAxisConfig zone
+        , y = Axis.default 400 "Battery" .batteryFloat
+        , area = Area.default
+        , container = Container.default "battery-chart"
+        , interpolation = Interpolation.default
+        , intersection = Intersection.default
+        , legends = Legends.default
+        , events = Events.default
+        , junk = Junk.default
+        , grid = Grid.default
+        , line = Line.default
+        , dots = Dots.default
+        }
+        [ LineChart.line Colors.blue Dots.none "Battery" checkIns ]
+
+xAxisConfig : Time.Zone -> Axis.Config CheckInFloat msg
+xAxisConfig zone =
+    Axis.custom
+        { title = Title.default "Time"
+        , variable = Just << .timeFloat
+        , pixels = 1000
+        , range = Range.default
+        , axisLine = AxisLine.default
+        , ticks = Ticks.time zone 7
+        --, ticks = Ticks.default
+        }
 
 last : List a -> Maybe a
 last list = 
