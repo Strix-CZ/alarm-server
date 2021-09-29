@@ -79,7 +79,7 @@ class DeviceCheckInDtoTest
 		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 100));
 		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 90));
 
-		assertCheckInBatteryLevels(query.getNewestCheckIns(connection, deviceId, 1000), 100, 90);
+		assertCheckInBatteryLevels(query.getNewestCheckIns(connection, deviceId, 1000, 100), 100, 90);
 	}
 
 	@Test
@@ -88,7 +88,16 @@ class DeviceCheckInDtoTest
 		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 100));
 		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 90));
 
-		assertCheckInBatteryLevels(query.getNewestCheckIns(connection, deviceId, 1), 90);
+		assertCheckInBatteryLevels(query.getNewestCheckIns(connection, deviceId, 1, 100), 90);
+	}
+
+	@Test
+	void getNewestWithMaxAge_filtersOldResult()
+	{
+		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.of(2020, 1, 1, 0, 0, 0), 100));
+		query.insertUpdate(connection, new DeviceCheckInDto(deviceId, LocalDateTime.now(), 90));
+
+		assertCheckInBatteryLevels(query.getNewestCheckIns(connection, deviceId, 1000, 5), 90);
 	}
 
 	private void assertCheckInBatteryLevels(List<DeviceCheckInDto> checkIns, Integer... expectedBatteryLevels)

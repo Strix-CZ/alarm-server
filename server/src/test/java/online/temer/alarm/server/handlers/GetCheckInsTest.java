@@ -58,7 +58,7 @@ public class GetCheckInsTest
 	void singleCheckIn_returnsIt()
 	{
 		createUserWithDevice(TimeZone.getDefault());
-		LocalDateTime time = LocalDateTime.of(2020, 10, 31, 8, 20);
+		LocalDateTime time = LocalDateTime.now().withHour(8).withMinute(20);
 
 		DeviceCheckInDto expectedCheckIn = new DeviceCheckInDto(device.id, time, 95);
 		deviceCheckInQuery.insertUpdate(connection, expectedCheckIn);
@@ -90,7 +90,7 @@ public class GetCheckInsTest
 		TimeZone timeZone = TimeZone.getTimeZone(ZoneId.of("Asia/Kolkata"));
 		createUserWithDevice(timeZone);
 
-		LocalDateTime serverLocalTime = LocalDateTime.of(2020, 10, 31, 8, 20);
+		LocalDateTime serverLocalTime = LocalDateTime.now().withHour(8).withMinute(20);
 		deviceCheckInQuery.insertUpdate(connection, new DeviceCheckInDto(device.id, serverLocalTime, 95));
 
 		var time = new JSONObject(makeGetRequest().body())

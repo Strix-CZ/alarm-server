@@ -29,7 +29,7 @@ public class DeviceCheckInQuery
 		}
 	}
 
-	public List<DeviceCheckInDto> getNewestCheckIns(Connection connection, long device, int limit)
+	public List<DeviceCheckInDto> getNewestCheckIns(Connection connection, long device, int limit, int maxAgeDays)
 	{
 		try
 		{
@@ -39,10 +39,12 @@ public class DeviceCheckInQuery
 					"SELECT * " +
 							"FROM DeviceCheckIn " +
 							"WHERE kDevice = ? " +
+							"  AND time >= DATE_SUB(NOW(), INTERVAL ? DAY) " +
 							"ORDER BY id DESC " +
 							"LIMIT ?",
 					listHandler,
 					device,
+					maxAgeDays,
 					limit);
 
 			checkIns.sort(Comparator.comparingLong(checkIn -> checkIn.id));
