@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onCheck, onSubmit)
 import Http
 import Base64
-import Json.Decode exposing (Decoder, field, int, map2, oneOf, bool, string)
+import Json.Decode exposing (Decoder, field, int, map2, oneOf, bool)
 import Json.Encode
 import ParseInt
 import Array
@@ -19,12 +19,12 @@ import LineChart.Axis.Line as AxisLine
 import LineChart.Axis.Range as Range
 import LineChart.Axis.Ticks as Ticks
 import LineChart.Axis.Title as Title
-import LineChart.Junk as Junk
+import LineChart.Junk
 import LineChart.Dots as Dots
 import LineChart.Grid as Grid
-import LineChart.Dots as Dots
+import LineChart.Dots
 import LineChart.Line as Line
-import LineChart.Colors as Colors
+import LineChart.Colors
 import LineChart.Events as Events
 import LineChart.Legends as Legends
 import LineChart.Container as Container
@@ -178,7 +178,7 @@ update msg model =
 -- SUBSCRIPTIONS
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
   Sub.none
 
 
@@ -479,9 +479,9 @@ timeToString time =
     ++ (String.padLeft 2 '0' (String.fromInt time.minute))
 
 stringToTime : String -> Result ParseInt.Error Time
-stringToTime timeSring = 
+stringToTime timeString =
   let
-    components = String.split ":" timeSring |> Array.fromList
+    components = String.split ":" timeString |> Array.fromList
     hourString = Array.get 0 components |> Maybe.withDefault ""
     minuteString = Array.get 1 components |> Maybe.withDefault ""
     hour = ParseInt.parseInt hourString
