@@ -22,6 +22,11 @@ elm reactor
 elm make src/Main.elm
 ```
 
+### Device
+
+Schematics are in folder device. The `.json` file can be imported to [EasyEDA](https://easyeda.com/).
+![Photo of manufactured PCBs](device/PCB%20photo.jpg)
+
 ### Current assumptions
 
 - 1 user = 1 device* = 1 time of alarm
