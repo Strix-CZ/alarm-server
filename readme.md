@@ -24,7 +24,7 @@ elm make src/Main.elm
 
 ### Device
 
-Schematics are in folder device. The `.json` file can be imported to [EasyEDA](https://easyeda.com/).
+Schematics are in directory `device`. The `.json` file can be imported to [EasyEDA](https://easyeda.com/).
 ![Photo of manufactured PCBs](device/PCB%20photo.jpg)
 
 ### Current assumptions
